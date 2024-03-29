@@ -1,16 +1,28 @@
-node {
-    def app
-    stage('Clone repository') {
-        checkout scm
-    }
-    stage('Build image') {
-       app = docker.build("kristinadojkoska/jenkins")
-    }
-    stage('Push image') {   
-        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-            app.push("${env.BRANCH_NAME}-${env.BUILD_NUMBER}")
-            app.push("${env.BRANCH_NAME}-latest")
-            // signal the orchestrator that there is a new version
+pipeline {
+    agent any
+    
+    stages {
+        stage('Clone repository') {
+            steps {
+                git 'https://github.com/kristinadojkoska/Jenkins_DevOps.git'
+            }
+        }
+        stage('Build image') {
+            steps {
+                script {
+                    docker.build("kristinadojkoska/jenkins")
+                }
+            }
+        }
+        stage('Push image') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+                        app.push("${env.BRANCH_NAME}-${env.BUILD_NUMBER}")
+                        app.push("${env.BRANCH_NAME}-latest")
+                    }
+                }
+            }
         }
     }
 }
